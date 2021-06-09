@@ -2,8 +2,55 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import viewsets
+from rest_framework.authentication import TokenAuthentication
+
+from profiles_api import models
+from profiles_api import permissions
 from profiles_api import serializers
 
+class HelloViewset(viewsets.ViewSet):
+    """Test API Viewset """
+    serializer_class = serializers.HelloSerializer
+    
+    def list(self,request):
+        """Return a Hello Message """
+        a_viewset = [
+            'Uses as an actions (list, create , retrieve, update, partial-update, destroy)',
+            'Automatically maps to URLs using Routers ',
+            'Provide more functionality with less code'
+        ]
+        
+        return Response({'message':'Hello', 'a_viewset':a_viewset})
+    
+    def create(self, request):
+        serializer = self.serializer_class(data= request.data)
+        
+        if serializer.is_valid():
+            name = serializer.validated_data('name')
+            message = "Hello {}".format(name)
+            return Response({'message':message})
+                            
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        
+    
+    def retrieve(self,request,pk=None):
+        return Response({'http Method':'GET'})
+    
+    def update(self,request,pk=None):
+        return Response({'http Method':'PUT'})
+    
+    def partial_update(self,request,pk=None):
+        return Response({'http Method':'PATCH'})
+    
+    def destroy(self,request,pk=None):
+        return Response({'http Method':'DELETE'})
+        
 # Create your views here.
 class HelloAPIView(APIView):
     """Test API View """
@@ -48,3 +95,16 @@ class HelloAPIView(APIView):
     def delete(self, request, pk = None):
         """ Delete an Object"""
         return Response({'method':'Delete'})
+    
+    
+class UserProfileViewset(viewsets.ModelViewSet):
+    """ Handle Creating and Updating  profiles """
+    serializer_class = serializers.UserProfileSerializer
+    queryset = models.UserProfile.objects.all()
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = (permissions.UpdateOwnProfile,)
+    
+    
+    
+    
+    
